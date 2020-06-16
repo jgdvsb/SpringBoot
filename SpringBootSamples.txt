@@ -1,0 +1,221 @@
+		Date : 12/06/2020
+		Spring Boot 9 AM 
+		Mr. RAGHU
+---------------------------------------------------------
+			Spring Boot Scheduling
+			----------------------
+Scheduling: Executing task multiple time(in a loop)
+            based on period of time or point of time.
+
+period of time : It is a Time Gap
+  4hrs,32 mins, 5 days, 6 months..etc
+
+point of time : It is a exact date/time.
+  11:00AM
+  6th Jan
+  12:45 PM ..etc
+
+Ex:
+a. Shop Sotfware -> Generate Report everyday by night 8PM.
+b. Database backup after every 3 months.
+c. CredCard Bill for every 30 days.
+d. Bank Monthly Statements
+e. Salary Slips
+f. Every Month phone bill/Power Bill/...(Billings)
+g. Stock Market Reports by 4PM
+..etc
+
+
+Q)What is demon thread in Java? 
+A) _______________
+--------------------------------------------------------------------------------------
+*)Spring Boot Scheduling Can be implemented using 3 different concepts. Given as
+
+	a. fixedDelay **
+	b. fixedRate
+	c. cron expression ***
+
+---Steps to implement Scheduling:---------------------------
+i. Define one method with type public and void return type, that zero params
+    (method called as Container as a Thread).
+
+   public void  <anyName>(){
+     //logic
+   }
+
+ii. Apply annotation : @Scheduled over method
+
+iii. Write one annotation @EnableScheduling over starter class
+--------------------------------------------------------------
+
+a. fixedDelay ** :-
+  This process is used to execte a task based on period of time(Time Gap only).
+  Time value must be provided in mill sec(1000 mill sec = 1 sec)
+
+--Example--
+package in.nit.service;
+import java.util.Date;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+@Component
+public class MyReportService {
+
+	@Scheduled(initialDelay = 5000,fixedDelay = 2000) //1000 mill sec=1 sec
+	public void  showReport() {
+		System.out.println("REPORT->"+new Date());
+	}
+	
+}
+-----------------------------------------------------------
+Here initialDelay gives a time gap for Application startup and first method call.
+fixedDelay: It gives exact time gap between last method execution complete to
+             next method execution start.
+
+Values must be given in mill sec only (1000 mill sec =1 sec)
+
+Ex:  @Scheduled(fixedDelay = 1000 * 60 * 60 * 24 * 3)  //3days
+Ex:  @Scheduled(fixedDelay = 1000 * 60 )  // 1 min
+
+=>** @Scheduled is processed by ScheduledAnnotationBeanPostProcessor
+================================================================
+b. fixedRate :- It give max time gap between two method calls including wait time.
+
+-Example-
+package in.nit.service;
+import java.util.Date;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+@Component
+public class MyReportService {
+
+	@Scheduled(initialDelay = 5000,fixedRate =  1000) 
+	public void  showReport() {
+		System.out.println("REPORT->"+new Date());
+	}
+	
+}
+
+*)Main method class:
+package in.nit;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
+
+@SpringBootApplication
+@EnableScheduling
+public class SpringBoot2SchedulingExApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(SpringBoot2SchedulingExApplication.class, args);
+	}
+
+}
+
+---------**********----------------------------------------------------
+https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/scheduling/support/CronSequenceGenerator.html
+-------------------------------------------------------------------------
+cron expression:- It is a concept of Unix/Linux OS. Used to schedule a Task.
+
+=> cron expression by default point of time.
+
+Cron Format is:
+     SEC     MIN    HRS    DAY    MONTH    WEEKDAY
+     0-59    0-59   0-23   1-31   1-12     SUN-MON
+
+Possible Symbols:
+   *   =  Any/All
+   -   =  Range
+   ,   =  Possible values
+   /   =  Period of Time
+   ?   =  Any/All used only for DAY/WEEK DAY when Month is provided.
+
+--------Examples------------------------
+#1.  0 0 9 * * *
+=> Execute Given task every day- 9:00:00 AM
+
+#2.  0  0  9  12  DEC  SUN-MON
+=> Execute Given task every year DEC-12th (any week day)
+   at 9:00:00 AM
+
+#3.  0  0  9  12   *   *
+=> Execute Given task every month 
+   12th Day 9:00:00 AM 
+
+#4.  0   0   16  *  *  *
+=> Execute Given task every 4:00:00 PM
+
+#5.  0  0  6,18  *  *  *
+=> Execute Given task every 2 times
+     6AM and 6PM
+
+#6. 0  0  6-9  *  *  *
+=> Execute Given task every 4 times
+    6AM, 7AM, 8AM, 9AM
+
+#7. 0  10  *   *  *  *
+=>  Execute Given task every Hour 10th Min
+      7:10:00 AM
+      8:10:00 AM
+
+#8. 10  *  *   *  *  *
+=>  Execute Given task every minute 10th Sec
+    3:45:10 PM
+    3:46:10 PM
+
+---------Time Gap-----------------------------
+#9. */10   *  *  *  *  *
+=>  Execute Given task every 10 Sec gap
+
+#10.  0   0/10   9   *  *  *
+=> Execute Given task every Day 
+    9:00:00 AM
+
+ and also gap of 10 mins
+   9:10:00
+   9:20:00
+   9:30:00
+   9:40:00
+   9:50:00
+   --over--
+
+#11.  0  30/15   8,9  *  *  *
+
+=>  Execute Given task every Day
+     8:30:00
+     9:30:00
+
+     also gap of 15 min
+     8:45:00
+     9:00:00
+     9:15:00
+     9:45:00
+    
+#12   0  0  9  *  JAN  *
+=> Invaild. When month is provided then you must give DAY and WEEK DAY
+            ELSE to use ? to indicate all DAY and ALL WEEK DAYS
+ 
+ => Vaild one : 0  0  9  ?  JAN  ?
+
+
+#13  0  *  9  *  *  *
+=> Invaild. 
+  a. If we provide Hrs then must specify any number for Mins and Sec 
+  b. If we provide Mins then must specify any number for  Sec 
+
+ Vaild One : 0  0  9  *  * *
+Invaild One: *  *  9  *  * *
+
+
+Q) @Scheduled(cron = "* * * * * *") 
+A) _______________.
+
+Q) @Scheduled(cron = "* * * * *") 
+A) _______________.
+
+
+--Task-------------
+1. Write Cron Expression for Happy New Year
+
+2. Happy B'Day to my Dear ___
+
